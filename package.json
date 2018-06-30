@@ -1,0 +1,22 @@
+{
+  "name": "idb-store",
+  "version": "1.0.0",
+  "description": "IndexedDB ES6 wrapper for single database creation and store methods",
+  "main": "idb-store.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "indexedDB",
+    "promises",
+    "stores",
+    "schema",
+    "manager",
+    "ES6"
+  ],
+  "author": "Dag",
+  "license": "ISC",
+  "dependencies": {
+    "idb": "^2.1.3"
+  }
+}
