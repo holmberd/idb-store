@@ -30,7 +30,7 @@ db.keyStore.set('foo', 42).then(() => {
   });
 });
 
-db.stores().then(names => {
+db.stores.then(names => {
   console.log('store names', names);
 });
 
@@ -38,10 +38,11 @@ db.stores().then(names => {
 
 ## Methods
 - `DB.hasSupport()`
-- `db.name()`
-- `db.version()`
+- `db.name`
+- `db.version`
+- `db.stores`
 - `db.close()`
-- `db.stores()`
+
 
 - `db[store].get(key)`
 - `db[store].set(key, val)`
