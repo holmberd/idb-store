@@ -1,5 +1,5 @@
 # IndexedDB Promises ES6 Store Wrapper
-ES6 class wrapper for creating and managing IndexedDB stores, built on top of [jakearchibald](https://github.com/jakearchibald) `idb` lib.
+ES6 class wrapper for creating and managing IndexedDB stores, built on top of [jakearchibald](https://github.com/jakearchibald) [idb](https://github.com/jakearchibald/idb) lib.
 
 ## Up and Running
 ```sh
