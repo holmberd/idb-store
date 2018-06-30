@@ -166,7 +166,12 @@ class DB {
    */
   get stores() {
     return this.dbPromise.then(db => {
-      return db.objectStoreNames;
+      let names = db.objectStoreNames;
+      let buffer = [];
+      for (var i = 0; i < names.length; i++) {
+        buffer.push(names[i]);
+      }
+      return buffer;
     });
   }
 
