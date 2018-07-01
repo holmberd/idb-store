@@ -167,8 +167,8 @@ class DB {
     this.dbPromise = idb.open(dbName, version, upgradeDB => {
       let store = null;
       storesData.forEach(storeData => {
-        if (!upgradeDB.objectStoreNames.contains(storeData.create.name, storeData.create.options)) {
-          store = upgradeDB.createObjectStore(storeData.create.name);
+        if (!upgradeDB.objectStoreNames.contains(storeData.create.name)) {
+          store = upgradeDB.createObjectStore(storeData.create.name, storeData.create.options);
           if (storeData.hasOwnProperty('index')) {
             store.createIndex(storeData.index.name, storeData.index.property, storeData.index.options);
           }
