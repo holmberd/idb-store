@@ -177,7 +177,7 @@ class DB {
     });
     this.dbPromise.then(db => {
       const names = db.objectStoreNames;
-      for (var i = 0; i < names; i++) {
+      for (var i = 0; i < names.length; i++) {
         this[names[i]] = new Store(names[i], this.dbPromise);
       }
     });
