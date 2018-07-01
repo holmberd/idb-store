@@ -12,7 +12,7 @@ const storesData = [
   {
     create: {
       name: 'keyStore',
-      options: {autoIncrement:true}
+      options: {autoIncrement: true}
     },
     index: {
       name: 'myIndex',
@@ -22,32 +22,44 @@ const storesData = [
 
   }];
 
+// Creates database and opens a connection.
 const db = new DB('myDB', 1, storesData);
 
-db.keyStore.set('foo', 42).then(() => {
-  db.keyStore.keys().then(keys => {
+db.keyStore.set({ data: 42 }).then(() => {
+  db.keyStore.getAllKeys().then(keys => {
     console.log('keys', keys);
   });
 });
 
-db.stores.then(names => {
+db.objectStoreNames.then(names => {
   console.log('store names', names);
 });
 
 ```
 
-## Methods
-- `DB.hasSupport()`
+## DB
+Static properties:
+- `DB.hasSupport`
+- `DB.deleteDatabase`
+
+## db
+Properties:
 - `db.name`
 - `db.version`
-- `db.stores`
+- `db.objectStoreNames`
+
+Methods:
 - `db.close()`
+- `db.transaction()`
 
-
-- `db[store].get(key)`
-- `db[store].set(key, val)`
-- `db[store].delete(key)`
+## Stores
+Methods:
+- `db[store].get()`
+- `db[store].set()`
+- `db[store].delete()`
 - `db[store].clear()`
-- `db[store].keys()`
+- `db[store].getAllKeys()`
+- `db[store].getAll()`
+- `db[store].count()`
 
 

@@ -17,9 +17,9 @@ class Store {
   }
 
   /**
-   * Retrives a key from the store.
+   * Retrives a record or a range of records from the store.
    *
-   * @param {String} key
+   * @param {Key|IDBKeyRange} key
    * @returns {Promise}
    */
   get(key) {
@@ -32,11 +32,11 @@ class Store {
   /**
    * Adds a new key value to the store.
    *
-   * @param {String} key
    * @param {*} val
+   * @param {PrimaryKey} [key] - The primary key of the record
    * @returns {Promise}
    */
-  set(key, val) {
+  set(val, key) {
     return this.dbPromise.then(db => {
       const tx = db.transaction(this.storeKey, 'readwrite');
       tx.objectStore(this.storeKey).put(val, key);
@@ -45,9 +45,9 @@ class Store {
   }
 
   /**
-   * Removes a key from the store.
+   * Removes a key or a range of keys from the store.
    *
-   * @param {String} key
+   * @param {Key|IDBKeyRange} key
    * @returns {Promise}
    */
   delete(key) {
@@ -72,11 +72,13 @@ class Store {
   }
 
   /**
-   * Retrives all keys from the store.
+   * Retrives all keys from the store or a range of keys.
    *
+   * @param {IDBKeyRange} [query]
+   * @param {Number} [count] -  Number of values to return
    * @returns {Promise}
    */
-  keys() {
+  getAllKeys(query, count) {
     return this.dbPromise.then(db => {
       const tx = db.transaction(this.storeKey);
       const keys = [];
@@ -89,6 +91,37 @@ class Store {
       });
 
       return tx.complete.then(() => keys);
+    });
+  }
+
+  /**
+   * Retrives all records from the store.
+   * If query is set then returns all records
+   * that match the provided key or IDBKeyRange.
+   *
+   * @param {Key|IDBKeyRange} [query]
+   * @param {Number} [count] - number of values to return
+   */
+  getAll(query, count) {
+    return this.dbPromise.then(db => {
+      const tx = db.transaction(this.storeKey);
+      const store = tx.objectStore(this.storeKey);
+      const keys = store.getAll(query, count);
+      return tx.complete.then(() => keys);
+    });
+  }
+
+  /**
+   * Returns all records or the total number of records
+   * that match the provided key or IDBKeyRange.
+   *
+   * @param {Key|IDBKeyrange} [query]
+   * @returns {Promise}
+   */
+  count(query) {
+    return this.dbPromise.then(db => {
+      return db.transaction(this.storeKey)
+        .objectStore(this.storeKey).count(query);
     });
   }
 
@@ -118,6 +151,19 @@ class Store {
  */
 class DB {
   constructor(dbName, version, storesData) {
+    this.dbPromise = null;
+    this.open(dbName, version, storesData);
+  }
+
+  /**
+   * Opens a connection to the database.
+   *
+   * @param {String} dbName
+   * @param {Number} version
+   * @param {StoreData[]} storesData
+   * @returns {Promise}
+   */
+  open(dbName, version, storesData) {
     this.dbPromise = idb.open(dbName, version, upgradeDB => {
       let store = null;
       storesData.forEach(storeData => {
@@ -131,9 +177,84 @@ class DB {
     });
     this.dbPromise.then(db => {
       const names = db.objectStoreNames;
-      for (var i = 0; i < names.length; i++) {
+      for (var i = 0; i < names; i++) {
         this[names[i]] = new Store(names[i], this.dbPromise);
       }
+    });
+    return this.dbPromise;
+  }
+
+  /**
+   * Deletes a database.
+   *
+   * @param {String} dbName
+   * @returns {Promise}
+   */
+  static deleteDatabase(dbName) {
+    return idb.delete(dbName);
+  }
+
+  /**
+   * Fired when a database structure change.
+   *
+   * @listens IDBOpenDBRequest.onupgradeneeded | IDBFactory.deleteDatabase
+   * @returns {Promise}
+   */
+  onversionchange() {
+    return new Promise((resolve, reject) => {
+      return this.dbPromise.then(db => {
+        db._db.onversionchange = function(err) {
+          resolve(err);
+        };
+      });
+    });
+  }
+
+  /**
+   * Fired after all transactions have been aborted and the connection has been closed.
+   *
+   * @listens close
+   * @returns {Promise}
+   */
+  onclose() {
+    return new Promise((resolve, reject) => {
+      return this.dbPromise.then(db => {
+        db._db.onclose = function(err) {
+          resolve(err);
+        };
+      });
+    });
+  }
+
+  /**
+   * Fired when a request returns an error and bubbles up to the connection object.
+   *
+   * @listens error
+   * @returns {Promise}
+   */
+  onerror() {
+    return new Promise((resolve, reject) => {
+      return this.dbPromise.then(db => {
+        db._db.onerror = function(err) {
+          resolve(err);
+        };
+      });
+    });
+  }
+
+  /**
+   * Fired when a transaction is aborted and bubbles up to the connection object.
+   *
+   * @listens abort
+   * @returns {Promise}
+   */
+  onabort() {
+    return new Promise((resolve, reject) => {
+      return this.dbPromise.then(db => {
+        db._db.onabort = function(err) {
+          resolve(err);
+        };
+      });
     });
   }
 
@@ -164,7 +285,7 @@ class DB {
    *
    * @returns {Promise}
    */
-  get stores() {
+  get objectStoreNames() {
     return this.dbPromise.then(db => {
       let names = db.objectStoreNames;
       let buffer = [];
@@ -187,12 +308,25 @@ class DB {
   }
 
   /**
+   * Returns a transaction object(IDBTransaction).
+   *
+   * @param {String[]|IDBDatabase.objectStoreNames} [storeNames]
+   * @param {String} [mode]
+   */
+  transaction(storeNames, mode) {
+    return this.dbPromise.then(db => {
+      return db.transaction(storeNames, mode);
+    });
+  }
+
+  /**
    * Checks if indexedDB is supported.
    *
    * @static
+   * @readonly
    * @returns {Boolean}
    */
-  static hasSupport() {
+  static get hasSupport() {
     if (!('indexedDB' in window)) {
       console.warn('This environment doesn\'t support IndexedDB');
       return false;
