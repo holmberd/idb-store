@@ -21,6 +21,8 @@ const schemas = [
     }
   }];
 
+const DB = require('idb-store');
+
 // Creates a new database.
 DB.createDatabase('myDB', 1, schemas);
 
