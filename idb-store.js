@@ -128,9 +128,9 @@ class Store {
 }
 
 /**
- * An object containing idb object store data.
+ * An object representing an idb store schema.
  *
- * @typedef {Object} StoreData
+ * @typedef {Object} Schema
  * @property {Object} create
  * @property {String} create.name
  * @property {Object} create.options
@@ -141,18 +141,17 @@ class Store {
  */
 
 /**
- * Class representing a open IDBDatabase object.
+ * Class representing an open connection to a IDBDatabase object.
  *
  * @constructor
  * @param {String} dbName
  * @param {Number} version
- * @param {StoreData[]} storesData
  * @returns {DB}
  */
 class DB {
-  constructor(dbName, version, storesData) {
+  constructor(dbName, version) {
     this.dbPromise = null;
-    this.open(dbName, version, storesData);
+    this.open(dbName, version);
   }
 
   /**
@@ -160,28 +159,42 @@ class DB {
    *
    * @param {String} dbName
    * @param {Number} version
-   * @param {StoreData[]} storesData
    * @returns {Promise}
    */
-  open(dbName, version, storesData) {
-    this.dbPromise = idb.open(dbName, version, upgradeDB => {
-      let store = null;
-      storesData.forEach(storeData => {
-        if (!upgradeDB.objectStoreNames.contains(storeData.create.name)) {
-          store = upgradeDB.createObjectStore(storeData.create.name, storeData.create.options);
-          if (storeData.hasOwnProperty('index')) {
-            store.createIndex(storeData.index.name, storeData.index.property, storeData.index.options);
-          }
-        }
-      });
-    });
-    this.dbPromise.then(db => {
+  open(dbName, version) {
+    const dbPromise = idb.open(dbName, version).then(db => {
       const names = db.objectStoreNames;
       for (var i = 0; i < names.length; i++) {
         this[names[i]] = new Store(names[i], this.dbPromise);
       }
     });
-    return this.dbPromise;
+    this.dbPromise = dbPromise;
+    return dbPromise;
+  }
+
+  /**
+   * Creates a new database and schema structure.
+   * 
+   * @param {String} dbName
+   * @param {Number} version
+   * @param {Schema[]}
+   * @returns {Promise}
+   */
+  static createDatabase(dbName, version, schemas) {
+    return idb.open(dbName, version, upgradeDB => {
+      let store = null;
+      schemas.forEach(schema => {
+        if (!upgradeDB.objectStoreNames.contains(schema.create.name)) {
+          store = upgradeDB.createObjectStore(schema.create.name, schema.create.options);
+          if (schema.hasOwnProperty('index')) {
+            store.createIndex(schema.index.name, schema.index.property, schema.index.options);
+          }
+        }
+      });
+    })
+    .then(db => {
+      return db.close();
+    });
   }
 
   /**
@@ -192,6 +205,21 @@ class DB {
    */
   static deleteDatabase(dbName) {
     return idb.delete(dbName);
+  }
+
+  /**
+   * Checks if indexedDB is supported.
+   *
+   * @static
+   * @readonly
+   * @returns {Boolean}
+   */
+  static get hasSupport() {
+    if (!('indexedDB' in window)) {
+      console.warn('This environment doesn\'t support IndexedDB');
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -319,20 +347,6 @@ class DB {
     });
   }
 
-  /**
-   * Checks if indexedDB is supported.
-   *
-   * @static
-   * @readonly
-   * @returns {Boolean}
-   */
-  static get hasSupport() {
-    if (!('indexedDB' in window)) {
-      console.warn('This environment doesn\'t support IndexedDB');
-      return false;
-    }
-    return true;
-  }
 }
 
 module.exports = DB;

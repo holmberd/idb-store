@@ -8,7 +8,7 @@ npm install idb-store
 
 ## Usage
 ```js
-const storesData = [
+const schemas = [
   {
     create: {
       name: 'keyStore',
@@ -19,27 +19,32 @@ const storesData = [
       property: 'property',
       options: {unique: false}
     }
-
   }];
 
-// Creates database and opens a connection.
-const db = new DB('myDB', 1, storesData);
+// Creates a new database.
+DB.createDatabase('myDB', 1, schemas);
 
+// Opens a new connection to a IDBDatabase object.
+const db = new DB('myDB', 1);
+
+// Creates a transactions and sets some data in keyStore.
 db.keyStore.set({ data: 42 }).then(() => {
   db.keyStore.getAllKeys().then(keys => {
     console.log('keys', keys);
   });
 });
 
-db.objectStoreNames.then(names => {
-  console.log('store names', names);
-});
+// Close IDBDatabase connection.
+db.close();
+
+
 
 ```
 
 ## DB
 Static properties:
 - `DB.hasSupport`
+- `DB.createDatabase`
 - `DB.deleteDatabase`
 
 ## db
@@ -51,6 +56,12 @@ Properties:
 Methods:
 - `db.close()`
 - `db.transaction()`
+
+Events:
+- `onversionchange`
+- `onabort`
+- `onerror`
+- `onclose`
 
 ## Stores
 Methods:
