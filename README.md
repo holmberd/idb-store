@@ -21,25 +21,31 @@ const schemas = [
     }
   }];
 
-const DB = require('idb-store');
+const DB = require('idb-store').DB;
+const Store = require('idb-store').Store;
 
 // Creates a new database.
 DB.createDatabase('myDB', 1, schemas);
 
-// Opens a new connection to a IDBDatabase object.
 const db = new DB('myDB', 1);
+const itemRepository = new Store('item', db);
 
-// Creates a transactions and sets some data in keyStore.
-db.keyStore.set({ data: 42 }).then(() => {
-  db.keyStore.getAllKeys().then(keys => {
-    console.log('keys', keys);
+// Creates a transactions and sets some data in the store.
+itemRepository.set({ data: 42 })
+  .then(itemRepository.getAll)
+  .then(val => {
+    console.log(val);
   });
 });
 
-// Close IDBDatabase connection.
-db.close();
-
-
+// Opens a new connection and logs the database name.
+db.open()
+  .then(db.name)
+  .then(name => {
+    console.log('database name:', name);
+  })
+  .then(db.close)
+});
 
 ```
 
