@@ -11,7 +11,7 @@ npm install idb-store
 const schemas = [
   {
     create: {
-      name: 'keyStore',
+      name: 'item',
       options: {autoIncrement: true}
     },
     index: {
