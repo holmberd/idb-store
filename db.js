@@ -1,3 +1,7 @@
+'use strict';
+
+const idb = require('./idb.js');
+
 /**
  * An object representing an idb store schema.
  *
@@ -40,7 +44,7 @@ class DB {
 
   /**
    * Creates a new database and schema structure.
-   * 
+   *
    * @param {String} dbName
    * @param {Number} version
    * @param {Schema[]}
@@ -248,3 +252,5 @@ class DB {
 function connectionError() {
   return Promise.reject(new Error('Connection not open.'));
 }
+
+module.exports = DB;

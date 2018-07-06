@@ -2,7 +2,7 @@
   "name": "idb-store",
   "version": "1.0.4",
   "description": "IndexedDB ES6 wrapper for single database creation and store methods",
-  "main": "idb-store.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Class representing a IndexedDB objectStore.
  *
@@ -6,7 +8,7 @@
  * @param {DB} idbConnection
  * @returns {Store}
  */
-class StoreRepository {
+class Store {
   constructor(storeKey, idbConnection) {
     this.storeKey = storeKey;
     this.idbConnection = idbConnection;
@@ -142,3 +144,5 @@ class StoreRepository {
   }
 
 }
+
+module.exports = Store;
