@@ -224,9 +224,13 @@ class DB {
     if (!this.dbPromise) {
       return connectionError();
     }
-    return this.dbPromise.then(db => {
-      return db.close();
-    });
+    return this.dbPromise
+      .then(db => {
+        return db.close();
+      })
+      .then(() => {
+        this.dbPromise = null;
+      });
   }
 
   /**
