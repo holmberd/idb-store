@@ -29,9 +29,12 @@ class Store {
     return connection.then(db => {
       const tx = db.transaction(this.storeKey);
       const val = tx.objectStore(this.storeKey).get(key);
-      return tx.complete
-        .then(connection.close)
-        .then(() => val);
+      db.close();
+      return tx.complete.then(() => val);
+    })
+    .catch(err => {
+      err.message = 'Failed to get store record: ' + err.message;
+      return Promise.reject(err);
     });
   }
 
@@ -44,10 +47,16 @@ class Store {
    */
   set(val, key) {
     const connection = this.getConnection();
+    let _db = null;
     return connection.then(db => {
       const tx = db.transaction(this.storeKey, 'readwrite');
       tx.objectStore(this.storeKey).put(val, key);
-      return tx.complete.then(connection.close);
+      db.close();
+      return tx.complete;
+    })
+    .catch(err => {
+      err.message = 'Failed to set store record: ' + err.message;
+      return Promise.reject(err);
     });
   }
 
@@ -62,7 +71,12 @@ class Store {
     return connection.then(db => {
       const tx = db.transaction(this.storeKey, 'readwrite');
       tx.objectStore(this.storeKey).delete(key);
-      return tx.complete.then(connection.close);
+      db.close();
+      return tx.complete;
+    })
+    .catch(err => {
+      err.message = 'Failed to remove store record: ' + err.message;
+      return Promise.reject(err);
     });
   }
 
@@ -76,7 +90,12 @@ class Store {
     return connection.then(db => {
       const tx = db.transaction(this.storeKey, 'readwrite');
       tx.objectStore(this.storeKey).clear();
-      return tx.complete.then(connection.close);
+      db.close();
+      return tx.complete;
+    })
+    .catch(err => {
+      err.message = 'Failed to clear store records: ' + err.message;
+      return Promise.reject(err);
     });
   }
 
@@ -99,9 +118,12 @@ class Store {
         keys.push(cursor.key);
         cursor.continue();
       });
-      return tx.complete
-        .then(connection.close)
-        .then(() => keys);
+      db.close();
+      return tx.complete.then(() => keys);
+    })
+    .catch(err => {
+      err.message = 'Failed to get store keys: ' + err.message;
+      return Promise.reject(err);
     });
   }
 
@@ -112,6 +134,7 @@ class Store {
    *
    * @param {Key|IDBKeyRange} [query]
    * @param {Number} [count] - number of values to return
+   * @returns {Promise}
    */
   getAll(query, count) {
     const connection = this.getConnection();
@@ -119,9 +142,12 @@ class Store {
       const tx = db.transaction(this.storeKey);
       const store = tx.objectStore(this.storeKey);
       const keys = store.getAll(query, count);
-      return tx.complete
-        .then(connection.close)
-        .then(() => keys);
+      db.close();
+      return tx.complete.then(() => keys);
+    })
+    .catch(err => {
+      err.message = 'Failed to get all store records: ' + err.message;
+      return Promise.reject(err);
     });
   }
 
@@ -135,11 +161,14 @@ class Store {
   count(query) {
     const connection = this.getConnection();
     return connection.then(db => {
-    const tx = db.transaction(this.storeKey);
-    const val = tx.objectStore(this.storeKey).count(query);
-    return tx.complete
-      .then(connection.close)
-      .then(() => val);
+      const tx = db.transaction(this.storeKey);
+      const val = tx.objectStore(this.storeKey).count(query);
+      db.close();
+      return tx.complete.then(() => val);
+    })
+    .catch(err => {
+      err.message = 'Failed to get store count: ' + err.message;
+      return Promise.reject(err);
     });
   }
 
