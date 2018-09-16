@@ -126,7 +126,7 @@ class Store {
       const tx = db.transaction(this.storeKey);
       const keys = [];
       const store = tx.objectStore(this.storeKey);
-      // store.getAllKeys()
+      // TODO: store.getAllKeys()
       (store.iterateKeyCursor || store.iterateCursor).call(store, cursor => {
         if (!cursor) return;
         keys.push(cursor.key);
